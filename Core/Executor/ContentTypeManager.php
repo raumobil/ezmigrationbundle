@@ -39,12 +39,12 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
     protected function create()
     {
         foreach (array('identifier', 'content_type_group', 'name_pattern', 'attributes') as $key) {
-            if (!isset($step->dsl[$key])) {
+            if (!isset($this->dsl[$key])) {
                 throw new \Exception("The '$key' key is missing in a content type creation definition");
             }
         }
 
-        if (!isset($step->dsl['names']) || !isset($step->dsl['name'])) {
+        if (!isset($this->dsl['names']) || !isset($this->dsl['name'])) {
             throw new \Exception("The 'names' or 'name' key is missing in a content type creation definition");
         }
 
@@ -61,17 +61,17 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
         $contentTypeCreateStruct->nameSchema = $this->dsl['name_pattern'];
 
         // set names for the content type
-        if (isset($step->dsl['names'])) {
-            $contentTypeCreateStruct->names = $step->dsl['names'];
+        if (isset($this->dsl['names'])) {
+            $contentTypeCreateStruct->names = $this->dsl['names'];
         } else {
             $contentTypeCreateStruct->names = array(
-                $this->getLanguageCode($step) => $step->dsl['name'],
+                $this->getLanguageCode() => $this->dsl['name'],
             );
         }
 
-        if (isset($step->dsl['descriptions'])) {
-            $contentTypeCreateStruct->descriptions = $step->dsl['descriptions'];
-        } elseif (isset($step->dsl['description'])) {
+        if (isset($this->dsl['descriptions'])) {
+            $contentTypeCreateStruct->descriptions = $this->dsl['descriptions'];
+        } elseif (isset($this->dsl['description'])) {
             // set description for the content type
             $contentTypeCreateStruct->descriptions = array(
                 $this->getLanguageCode() => $this->dsl['description'],
@@ -145,15 +145,15 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
                 $contentTypeUpdateStruct->identifier = $this->dsl['new_identifier'];
             }
 
-            if (isset($step->dsl['names'])) {
-                $contentTypeUpdateStruct->names = $step->dsl['names'];
-            } elseif (isset($step->dsl['name'])) {
-                $contentTypeUpdateStruct->names = array($this->getLanguageCode($step) => $step->dsl['name']);
+            if (isset($this->dsl['names'])) {
+                $contentTypeUpdateStruct->names = $this->dsl['names'];
+            } elseif (isset($this->dsl['name'])) {
+                $contentTypeUpdateStruct->names = array($this->getLanguageCode($this) => $this->dsl['name']);
             }
 
-            if (isset($step->dsl['descriptions'])) {
-                $contentTypeUpdateStruct->descriptions = $step->dsl['descriptions'];
-            } elseif (isset($step->dsl['description'])) {
+            if (isset($this->dsl['descriptions'])) {
+                $contentTypeUpdateStruct->descriptions = $this->dsl['descriptions'];
+            } elseif (isset($this->dsl['description'])) {
                 $contentTypeUpdateStruct->descriptions = array(
                     $this->getLanguageCode() => $this->dsl['description'],
                 );
