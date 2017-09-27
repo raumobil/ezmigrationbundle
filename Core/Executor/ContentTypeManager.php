@@ -493,7 +493,7 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
                     $fieldDefinition->descriptions = array($this->getLanguageCode() => $value);
                     break;
                 case 'descriptions':
-                    $fieldDefinition->description = $value;
+                    $fieldDefinition->descriptions = $value;
                     break;
                 case 'required':
                     $fieldDefinition->isRequired = $value;
