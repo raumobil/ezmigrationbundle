@@ -38,10 +38,14 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
      */
     protected function create()
     {
-        foreach (array('identifier', 'content_type_group', 'name_pattern', 'name', 'attributes') as $key) {
-            if (!isset($this->dsl[$key])) {
+        foreach (array('identifier', 'content_type_group', 'name_pattern', 'attributes') as $key) {
+            if (!isset($step->dsl[$key])) {
                 throw new \Exception("The '$key' key is missing in a content type creation definition");
             }
+        }
+
+        if (!isset($step->dsl['names']) || !isset($step->dsl['name'])) {
+            throw new \Exception("The 'names' or 'name' key is missing in a content type creation definition");
         }
 
         $contentTypeService = $this->repository->getContentTypeService();
@@ -57,11 +61,17 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
         $contentTypeCreateStruct->nameSchema = $this->dsl['name_pattern'];
 
         // set names for the content type
-        $contentTypeCreateStruct->names = array(
-            $this->getLanguageCode() => $this->dsl['name'],
-        );
+        if (isset($step->dsl['names'])) {
+            $contentTypeCreateStruct->names = $step->dsl['names'];
+        } else {
+            $contentTypeCreateStruct->names = array(
+                $this->getLanguageCode($step) => $step->dsl['name'],
+            );
+        }
 
-        if (isset($this->dsl['description'])) {
+        if (isset($step->dsl['descriptions'])) {
+            $contentTypeCreateStruct->descriptions = $step->dsl['descriptions'];
+        } elseif (isset($step->dsl['description'])) {
             // set description for the content type
             $contentTypeCreateStruct->descriptions = array(
                 $this->getLanguageCode() => $this->dsl['description'],
@@ -135,11 +145,15 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
                 $contentTypeUpdateStruct->identifier = $this->dsl['new_identifier'];
             }
 
-            if (isset($this->dsl['name'])) {
-                $contentTypeUpdateStruct->names = array($this->getLanguageCode() => $this->dsl['name']);
+            if (isset($step->dsl['names'])) {
+                $contentTypeUpdateStruct->names = $step->dsl['names'];
+            } elseif (isset($step->dsl['name'])) {
+                $contentTypeUpdateStruct->names = array($this->getLanguageCode($step) => $step->dsl['name']);
             }
 
-            if (isset($this->dsl['description'])) {
+            if (isset($step->dsl['descriptions'])) {
+                $contentTypeUpdateStruct->descriptions = $step->dsl['descriptions'];
+            } elseif (isset($step->dsl['description'])) {
                 $contentTypeUpdateStruct->descriptions = array(
                     $this->getLanguageCode() => $this->dsl['description'],
                 );
@@ -428,8 +442,8 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
                 $contentTypeData = array_merge(
                     $contentTypeData,
                     array(
-                        'name' => $contentType->getName($this->getLanguageCode()),
-                        'description' => $contentType->getDescription($this->getLanguageCode()),
+                        'names' => $contentType->getNames(),
+                        'descriptions' => $contentType->getDescriptions(),
                         'name_pattern' => $contentType->nameSchema,
                         'url_name_pattern' => $contentType->urlAliasSchema,
                         'is_container' => $contentType->isContainer,
@@ -472,8 +486,14 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
                 case 'name':
                     $fieldDefinition->names = array($this->getLanguageCode() => $value);
                     break;
+                case 'names':
+                    $fieldDefinition->names = $value;
+                    break;
                 case 'description':
                     $fieldDefinition->descriptions = array($this->getLanguageCode() => $value);
+                    break;
+                case 'descriptions':
+                    $fieldDefinition->description = $value;
                     break;
                 case 'required':
                     $fieldDefinition->isRequired = $value;
@@ -537,8 +557,14 @@ class ContentTypeManager extends RepositoryExecutor implements MigrationGenerato
                 case 'name':
                     $fieldDefinitionUpdateStruct->names = array($this->getLanguageCode() => $value);
                     break;
+                case 'names':
+                    $fieldDefinitionUpdateStruct->names = $value;
+                    break;
                 case 'description':
                     $fieldDefinitionUpdateStruct->descriptions = array($this->getLanguageCode() => $value);
+                    break;
+                case 'descriptions':
+                    $fieldDefinitionUpdateStruct->descriptions = $value;
                     break;
                 case 'required':
                     $fieldDefinitionUpdateStruct->isRequired = $value;
